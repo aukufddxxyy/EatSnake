@@ -7,7 +7,6 @@ class SnakeGame(QMainWindow):
         super().__init__()
 
         self.main_board = Board(self)
-        self.restart_pause_button = QPushButton('开始', self)
         self.reset_button = QPushButton('重新开始', self)
 
         self.status_bar = self.statusBar()
@@ -16,16 +15,14 @@ class SnakeGame(QMainWindow):
 
     def init_ui(self):
         self.setCentralWidget(self.main_board)
-        self.restart_pause_button.move(1000, 100)
-        self.reset_button.move(1000, 200)
+        self.reset_button.move(0, 0)
 
         self.reset_button.clicked.connect(self.main_board.reset)
-        self.restart_pause_button.clicked.connect(self.restart_pause)
 
         self.main_board.start()
 
-        self.resize(1200, 900)
-        self.setMinimumSize(1200, 900)
+        self.resize(500, 500)
+        self.setMinimumSize(500, 500)
 
         self.center()
         self.setWindowTitle('Snake')
@@ -37,8 +34,3 @@ class SnakeGame(QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
     
-    def restart_pause(self, pressed):
-        if pressed:
-            self.restart_pause_button.setText('暂停')
-        else:
-            self.restart_pause_button.setText('开始')

@@ -1,77 +1,104 @@
-class map:
-    def __init__(self):
-        self.size = 31
-        self.board = [[0 for _ in range(self.size)] for _ in range(self.size)]
+import random
 
-class Snake:
+
+class Map:
+    def __init__(self, size):
+        self.size = size
+        self.blanks = []
+        for i in range(self.size):
+            for j in range(self.size):
+                self.blanks.append((i, j))
+
+    def new_food(self):
+        return random.choice(self.blanks)
+
+    def change_blanks(self, head: list, tail: list):
+        if tail:
+            for i in tail:
+                self.blanks.append(i)
+        if head:
+            for i in head:
+                self.blanks.remove(i)
+
+
+class Snake(Map):
     directions = [(-1, 0), (1, 0), (0, 1), (0, -1)]
+    lenth = 10
+    d = 0
 
-    def __init__(self, head: tuple, width):
-        self.lenth = 10
-        self.width = width
-        self.d = 0
+    def __init__(self, size):
+        super().__init__(size)
+        self.head = (self.size // 2, self.size // 2)
         self.direction = self.directions[self.d]
-        self.body = [(head[0]+i, head[1]) for i in range(self.lenth)]
-        self.head = self.body[0]
+        self.body = []
+        self.init_body()
+        self.food = self.new_food()
 
-    def move(self, food):
-        if self.eat(food):
-            self.body.insert(0, food)
-            self.head = food
-            return ((True, (self.body[-1], self.body[0])))
+    def init_body(self):
+        self.blanks.remove(self.head)
+        for i in range(self.lenth):
+            self.body.append((self.head[0]+i+1, self.head[1]))
+            self.blanks.remove((self.head[0]+i+1, self.head[1]))
+
+    def move(self):
+        tail = []
+        try:
+            index = self.body.index(self.head)
+        except ValueError:
+            tail.append(self.body.pop())
         else:
-            head = self.wall()
-            tail = self.eat_self()
-            if head:
-                self.body.insert(0, head)
+            tail = tail + self.body[index-1:]
+            self.body = self.body[:index-1]
+        finally:
+            self.body.insert(0, self.head)
+            if self.eat_food():
+                self.head = self.wall(self.food)
+                self.body.insert(0, self.food)
+                if self.head in self.body:
+                    self.change_blanks([self.food], tail)
+                else:
+                    self.change_blanks([self.food, self.head], tail)
+                self.food = self.new_food()
             else:
-                head = (self.body[0][0]+self.direction[0], self.body[0][1]+self.direction[1])
-                self.body.insert(0, head)
-            if not tail:
-                tail = [self.body.pop()]
-            self.head = head
-            return((False, (tail, head)))
+                self.head = self.wall(self.head)
+                if self.head in self.body:
+                    self.change_blanks([], tail)
+                else:
+                    self.change_blanks([self.head], tail)
 
     def change_direction(self, d: int):
         if 0 <= d <= 3:
-            if (d <= 1 and self.d >= 2) or (d >= 2 and self.d <=1):
+            if (d <= 1 and self.d >= 2) or (d >= 2 and self.d <= 1):
                 self.d = d
                 self.direction = self.directions[self.d]
 
-    def eat(self, food):
-        if food[0] == self.body[0][0] + self.direction[0] and food[1] == self.body[0][1] + self.direction[1]:
+    def eat_food(self):
+        if self.food[0] == self.body[0][0] + self.direction[0] and self.food[1] == self.body[0][1] + self.direction[1]:
             return True
-        else:
-            return False
     
-    def wall(self):
-        if self.head[0] + self.direction[0] < 0:
-            return (self.width-1, self.head[1])
-        elif self.head[0] + self.direction[0] >= self.width:
-            return (0, self.head[1])
-        elif self.head[1] + self.direction[1] < 0:
-            return (self.head[0], self.width-1)
-        elif self.head[1] + self.direction[1] >=self.width:
-            return (self.head[0], 0)
-
-    def eat_self(self):
+    def wall(self, head):
+        if head[0] + self.direction[0] < 0:
+            return self.size-1, head[1]
+        elif head[0] + self.direction[0] >= self.size:
+            return 0, head[1]
+        elif head[1] + self.direction[1] < 0:
+            return head[0], self.size-1
+        elif head[1] + self.direction[1] >= self.size:
+            return head[0], 0
+        else:
+            return head[0]+self.direction[0], head[1]+self.direction[1]
+    
+    def eat_self(self, head):
+        tail = []
         try:
-            index = self.body.index((self.head[0]+self.direction[0], self.head[1]+self.direction[1]))
+            index = self.body.index(head)
         except ValueError:
             pass
         else:
-            tail = self.body[index:]
-            self.body = self.body[:index+1]
-            return tail
+            tail = tail + self.body[index-1:]
+            self.body = self.body[:index-1]
+
 
 if __name__ == '__main__':
-    # snake = Snake((1, 1))
-    # # snake.move()
-    # snake.eat((0, 1))
-    # snake.change_direction(2)
-    # print(snake.move())
-    # print(snake.body)
-    a = [1, 2, 3]
-    b = a.index(2)
-    a = a[b+1:]
-    print(a)
+    snake = Snake(31)
+    # print(snake.food)
