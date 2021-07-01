@@ -4,21 +4,23 @@ import random
 class Map:
     def __init__(self, size):
         self.size = size
-        self.blanks = []
-        for i in range(self.size):
-            for j in range(self.size):
-                self.blanks.append((i, j))
+        self.blanks = [[1 for _ in range(self.size)] for _ in range(self.size)]
 
     def new_food(self):
-        return random.choice(self.blanks)
+        temp_blanks = []
+        for i in range(self.size):
+            for j in range(self.size):
+                if self.blanks[i][j] == 1:
+                    temp_blanks.append((i, j))
+        return random.choice(temp_blanks)
 
     def change_blanks(self, head: list, tail: list):
         if tail:
             for i in tail:
-                self.blanks.append(i)
+                self.blanks[i[0]][i[1]] = 1
         if head:
             for i in head:
-                self.blanks.remove(i)
+                self.blanks[i[0]][i[1]] = 0
 
 
 class Snake(Map):
@@ -35,10 +37,10 @@ class Snake(Map):
         self.food = self.new_food()
 
     def init_body(self):
-        self.blanks.remove(self.head)
+        self.blanks[self.head[0]][self.head[1]] = 0
         for i in range(self.lenth):
             self.body.append((self.head[0]+i+1, self.head[1]))
-            self.blanks.remove((self.head[0]+i+1, self.head[1]))
+            self.blanks[self.head[0]+i+1][self.head[1]] = 0
 
     def move(self):
         tail = []
