@@ -10,7 +10,6 @@ class Board(QFrame):
         super().__init__(parent)
 
         self.is_started = False
-        self.key_signal = True
 
         self.size = 41
         self.speed = 100
@@ -19,6 +18,7 @@ class Board(QFrame):
         self.rate = 0.9
 
         self.timer = QBasicTimer()
+        self.direction = 0
 
         self.init_board()
 
@@ -87,24 +87,21 @@ class Board(QFrame):
     def timerEvent(self, event: QTimerEvent) -> None:
         if event.timerId() == self.timer.timerId():
             if self.is_started:
-                self.key_signal = not self.key_signal
+                self.snake.change_direction(self.direction)
                 self.snake.move()
                 self.update()
-                self.key_signal = not self.key_signal
         else:
             super().timerEvent(event)
 
     def keyPressEvent(self, event: QKeyEvent):
-        if self.key_signal:
-            if event.key() == Qt.Key_Space:
-                self.key_signal = True
-                self.pause_restart()
-            if self.is_started:
-                if event.key() == Qt.Key_Up:
-                    self.snake.change_direction(0)
-                elif event.key() == Qt.Key_Down:
-                    self.snake.change_direction(1)
-                elif event.key() == Qt.Key_Right:
-                    self.snake.change_direction(2)
-                elif event.key() == Qt.Key_Left:
-                    self.snake.change_direction(3)
+        if event.key() == Qt.Key_Space:
+            self.pause_restart()
+        if self.is_started:
+            if event.key() == Qt.Key_Up or event.key() == Qt.Key_W:
+                self.direction = 0
+            elif event.key() == Qt.Key_Down or event.key() == Qt.Key_S:
+                self.direction = 1
+            elif event.key() == Qt.Key_Right or event.key() == Qt.Key_D:
+                self.direction = 2
+            elif event.key() == Qt.Key_Left or event.key() == Qt.Key_A:
+                self.direction = 3
